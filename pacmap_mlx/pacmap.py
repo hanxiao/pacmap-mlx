@@ -81,31 +81,40 @@ def _sample_neighbors(knn_distances_np, knn_indices_np, n_neighbors):
     return np.stack([src, dst], axis=1)
 
 
-def _sample_MN_pairs(X_np, n_MN, rng):
-    """Sample mid-near pairs (vectorized). For each point, sample 6 random, pick 2nd closest."""
-    n, dim = X_np.shape
-    pair_MN = np.empty((n * n_MN, 2), dtype=np.int32)
+def _sample_MN_pairs(X_mx, n_MN, rng):
+    """Sample mid-near pairs on GPU. For each point, sample 6 random, pick 2nd closest."""
+    n = X_mx.shape[0]
+    results = []
     
     for j in range(n_MN):
-        # Sample 6 random offsets for all points at once: (n, 6)
-        # Use modular offset to avoid self: sample from [1, n) and add to index
-        offsets = rng.integers(1, n, size=(n, 6))  # (n, 6)
-        idx = np.arange(n)[:, None]
-        candidates = (idx + offsets) % n  # (n, 6), guaranteed != self
+        # Sample random candidates (avoid self via offset)
+        offsets = mx.array(rng.integers(1, n, size=(n, 6)).astype(np.int32))
+        idx = mx.arange(n)[:, None]
+        candidates = (idx + offsets) % n  # (n, 6)
         
-        # Compute squared distances: (n, 6)
-        # X_np[candidates] is (n, 6, dim)
-        X_cand = X_np[candidates]  # (n, 6, dim)
-        diffs = X_cand - X_np[:, None, :]  # (n, 6, dim)
-        dists = np.sum(diffs ** 2, axis=2)  # (n, 6)
+        # Gather candidate vectors: (n, 6, dim)
+        cand_flat = candidates.reshape(-1)  # (n*6,)
+        X_cand = X_mx[cand_flat].reshape(n, 6, -1)  # (n, 6, dim)
         
-        # For each point, remove closest, pick next closest (2nd closest)
-        sorted_idx = np.argsort(dists, axis=1)  # (n, 6)
-        picked = candidates[np.arange(n), sorted_idx[:, 1]]  # (n,)
+        # Squared distances
+        diffs = X_cand - X_mx[:, None, :]  # (n, 6, dim)
+        dists = mx.sum(diffs * diffs, axis=2)  # (n, 6)
         
+        # Pick 2nd closest (argsort, take index 1)
+        sorted_idx = mx.argsort(dists, axis=1)  # (n, 6)
+        picked = mx.take_along_axis(candidates, sorted_idx[:, 1:2], axis=1).squeeze(1)  # (n,)
+        
+        results.append(picked)
+    
+    mx.eval(*results)
+    
+    # Build pair array in numpy
+    pair_MN = np.empty((n * n_MN, 2), dtype=np.int32)
+    src = np.arange(n, dtype=np.int32)
+    for j, picked in enumerate(results):
         start = j * n
-        pair_MN[start:start + n, 0] = np.arange(n, dtype=np.int32)
-        pair_MN[start:start + n, 1] = picked.astype(np.int32)
+        pair_MN[start:start + n, 0] = src
+        pair_MN[start:start + n, 1] = np.array(picked, dtype=np.int32)
     
     return pair_MN
 
@@ -276,7 +285,7 @@ class PaCMAP:
         pair_neighbors = _sample_neighbors(knn_distances_np, knn_indices_np, n_neighbors)
         
         self._log("Sampling MN pairs...")
-        pair_MN = _sample_MN_pairs(X_proc_np, n_MN, rng)
+        pair_MN = _sample_MN_pairs(X_mx, n_MN, rng)
         
         self._log("Sampling FP pairs...")
         pair_FP = _sample_FP_pairs(n, pair_neighbors, n_neighbors, n_FP, rng)

@@ -210,6 +210,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "mlx" },
-    { name = "numpy" },
+    { name = "mlx", specifier = ">=0.20.0" },
+    { name = "numpy", specifier = ">=1.24.0" },
 ]
