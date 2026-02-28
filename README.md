@@ -68,6 +68,10 @@ PaCMAP optimizes three types of point pairs with a 3-phase weight schedule:
 
 All gradient computation and Adam optimization run on Metal GPU. KNN uses exact brute-force pairwise distances (O(n^2) matmul + argsort), which is faster than approximate methods at this scale thanks to unified memory.
 
+## See also
+
+- [umap-mlx](https://github.com/hanxiao/umap-mlx) -- UMAP in pure MLX. Uses fuzzy simplicial sets and spectral initialization. Better at preserving local neighborhood structure.
+
 ## Reference
 
 Wang, Y., Huang, H., Rudin, C., & Shaposhnik, Y. (2021). Understanding How Dimension Reduction Tools Work: An Empirical Approach to Deciphering t-SNE, UMAP, TriMap, and PaCMAP for Data Visualization. *Journal of Machine Learning Research*, 22(201), 1-73.
