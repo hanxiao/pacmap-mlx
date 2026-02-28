@@ -4,6 +4,12 @@ Pure MLX implementation of [PaCMAP](https://github.com/YingfanWang/PaCMAP) (Pair
 
 No scipy, no numba, no annoy. Just MLX + numpy.
 
+
+
+https://github.com/user-attachments/assets/b7bbe797-fe8c-4c6b-af8b-63d3e124d998
+
+
+
 ## Performance
 
 Fashion-MNIST 70,000 x 784 on M3 Ultra:
