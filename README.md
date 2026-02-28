@@ -1,0 +1,67 @@
+# PaCMAP-MLX
+
+Pure MLX implementation of [PaCMAP](https://github.com/YingfanWang/PaCMAP) (Pairwise Controlled Manifold Approximation) for Apple Silicon GPU.
+
+No scipy, no numba, no annoy. Just MLX + numpy.
+
+## Performance
+
+Fashion-MNIST 70,000 x 784 on M3 Ultra:
+
+| | pacmap-mlx | pacmap (original) |
+|---|---|---|
+| Total | **2.3s** | ~30s |
+| KNN | 1.8s (Metal GPU, exact) | ~15s (Annoy, approximate) |
+| Optimization | 0.1s (450 iters, Metal GPU) | ~12s (450 iters, Numba CPU) |
+
+## Install
+
+```bash
+uv pip install git+https://github.com/hanxiao/pacmap-mlx.git
+```
+
+Or from source:
+
+```bash
+git clone https://github.com/hanxiao/pacmap-mlx.git
+cd pacmap-mlx
+uv pip install -e .
+```
+
+## Usage
+
+```python
+import numpy as np
+from pacmap_mlx import PaCMAP
+
+X = np.random.randn(70000, 784).astype(np.float32)
+embedding = PaCMAP(n_components=2, n_neighbors=10).fit_transform(X)
+```
+
+## Parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `n_components` | 2 | Output dimensions |
+| `n_neighbors` | 10 | Nearest neighbors per point |
+| `MN_ratio` | 0.5 | Mid-near pairs per neighbor |
+| `FP_ratio` | 2.0 | Further pairs per neighbor |
+| `lr` | 1.0 | Adam learning rate |
+| `num_iters` | (100, 100, 250) | Iterations per phase |
+| `random_state` | None | Random seed |
+| `verbose` | False | Print progress |
+| `apply_pca` | True | PCA to 100 dims if input > 100 |
+
+## How it works
+
+PaCMAP optimizes three types of point pairs with a 3-phase weight schedule:
+
+1. **Neighbor pairs** (attractive): pull k-nearest neighbors together
+2. **Mid-near pairs** (attractive, then off): prevent cluster collapse using "2nd closest of 6 random" sampling
+3. **Further pairs** (repulsive): push random non-neighbors apart
+
+All gradient computation and Adam optimization run on Metal GPU. KNN uses exact brute-force pairwise distances (O(n^2) matmul + argsort), which is faster than approximate methods at this scale thanks to unified memory.
+
+## Reference
+
+Wang, Y., Huang, H., Rudin, C., & Shaposhnik, Y. (2021). Understanding How Dimension Reduction Tools Work: An Empirical Approach to Deciphering t-SNE, UMAP, TriMap, and PaCMAP for Data Visualization. *Journal of Machine Learning Research*, 22(201), 1-73.
