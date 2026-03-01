@@ -10,7 +10,7 @@ https://github.com/user-attachments/assets/b7bbe797-fe8c-4c6b-af8b-63d3e124d998
 
 
 
-## MLX Dimensionality Reduction
+
 
 | | [pacmap-mlx](https://github.com/hanxiao/pacmap-mlx) | [umap-mlx](https://github.com/hanxiao/umap-mlx) | [tsne-mlx](https://github.com/hanxiao/tsne-mlx) |
 |---|---|---|---|
