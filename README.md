@@ -70,7 +70,8 @@ All gradient computation and Adam optimization run on Metal GPU. KNN uses exact 
 
 ## See also
 
-- [umap-mlx](https://github.com/hanxiao/umap-mlx) -- UMAP in pure MLX. Uses fuzzy simplicial sets and spectral initialization. Better at preserving local neighborhood structure.
+- [umap-mlx](https://github.com/hanxiao/umap-mlx) -- UMAP in pure MLX. Fuzzy simplicial sets + spectral initialization. 30x faster than umap-learn.
+- [tsne-mlx](https://github.com/hanxiao/tsne-mlx) -- t-SNE in pure MLX. Exact compiled repulsive for small N, FFT interpolation (FIt-SNE) for large N. 12x faster than sklearn.
 
 ## Animation
 
