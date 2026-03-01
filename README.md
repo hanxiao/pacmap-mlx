@@ -10,6 +10,18 @@ https://github.com/user-attachments/assets/b7bbe797-fe8c-4c6b-af8b-63d3e124d998
 
 
 
+## MLX Dimensionality Reduction
+
+| | [pacmap-mlx](https://github.com/hanxiao/pacmap-mlx) | [umap-mlx](https://github.com/hanxiao/umap-mlx) | [tsne-mlx](https://github.com/hanxiao/tsne-mlx) |
+|---|---|---|---|
+| Algorithm | PaCMAP (Wang 2021) | UMAP (McInnes 2018) | t-SNE (van der Maaten 2008) |
+| Speedup | 13x vs PaCMAP | 30x vs umap-learn | 12x vs sklearn |
+| 70K time | 2.3s | 3.4s | 4.9s |
+| Best for | Global structure, balanced local/global trade-off | General purpose, fast, preserves local + some global | Local cluster separation, publication-quality plots |
+| Repulsive | Near/mid-near/far pair scheduling | Negative sampling SGD | FFT interpolation (N>16K) / exact compiled (N<16K) |
+
+All three: pure MLX + numpy, no scipy/PyTorch, Metal GPU, `pip install -e .`
+
 ## Performance
 
 Fashion-MNIST 70,000 x 784 on M3 Ultra:
@@ -67,11 +79,6 @@ PaCMAP optimizes three types of point pairs with a 3-phase weight schedule:
 3. **Further pairs** (repulsive): push random non-neighbors apart
 
 All gradient computation and Adam optimization run on Metal GPU. KNN uses exact brute-force pairwise distances (O(n^2) matmul + argsort), which is faster than approximate methods at this scale thanks to unified memory.
-
-## See also
-
-- [umap-mlx](https://github.com/hanxiao/umap-mlx) -- UMAP in pure MLX. Fuzzy simplicial sets + spectral initialization. 30x faster than umap-learn.
-- [tsne-mlx](https://github.com/hanxiao/tsne-mlx) -- t-SNE in pure MLX. Exact compiled repulsive for small N, FFT interpolation (FIt-SNE) for large N. 12x faster than sklearn.
 
 ## Animation
 
