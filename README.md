@@ -1,5 +1,9 @@
 # PaCMAP-MLX
 
+> [!WARNING]
+> This repo has been merged into [mlx-vis](https://github.com/hanxiao/mlx-vis) and is no longer maintained separately. Please use `pip install mlx-vis` instead.
+
+
 Pure MLX implementation of [PaCMAP](https://github.com/YingfanWang/PaCMAP) (Pairwise Controlled Manifold Approximation) for Apple Silicon GPU.
 
 No scipy, no numba, no annoy. Just MLX + numpy.
